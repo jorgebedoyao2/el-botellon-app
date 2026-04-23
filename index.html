@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --flu-blue: #0066ff; --flu-dark: #003db3; --flu-orange: #ff7b00;
+            --flu-green: #a3ff00; --bg-light: #f4f7fa; --text-main: #1a202c; --text-muted: #718096;
+        }
+
+        * { box-sizing: border-box; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background-color: var(--bg-light); color: var(--text-main); padding-bottom: 90px; }
+
+        /* HERO SECTION */
+        .hero {
+            background: linear-gradient(180deg, #3385ff 0%, var(--flu-dark) 100%);
+            color: white; padding: 40px 20px; text-align: center;
+            border-bottom-left-radius: 35px; border-bottom-right-radius: 35px;
+            box-shadow: 0 10px 25px rgba(0, 61, 179, 0.3);
+        }
+        .header-logo { font-weight: 900; font-size: 28px; letter-spacing: 1px; text-align: left; margin-bottom: 15px; text-transform: uppercase;}
+        .hero-img { width: 140px; filter: drop-shadow(0px 15px 15px rgba(0,0,0,0.4)); margin: 10px 0; }
+        .hero h1 { font-size: 28px; margin: 10px 0 5px; font-weight: 800; }
+        .hero p { font-size: 14px; margin: 0 0 20px 0; opacity: 0.9; font-weight: 400; }
+
+        .btn-main {
+            background: var(--flu-orange); color: white; border: none; padding: 14px 28px;
+            border-radius: 30px; font-weight: 700; font-size: 14px;
+            box-shadow: 0 8px 20px rgba(255, 123, 0, 0.4); cursor: pointer; text-transform: uppercase;
+        }
+
+        /* SERVICES SECTION */
+        .services-container { padding: 25px 20px; }
+        .section-title { font-size: 20px; font-weight: 800; margin-bottom: 15px; color: var(--flu-dark); }
+        .product-card {
+            background: white; border-radius: 16px; padding: 15px; display: flex; align-items: center;
+            gap: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.04); margin-bottom: 15px; position: relative; border: 1px solid #edf2f7;
+        }
+        .badge-green {
+            position: absolute; top: -10px; right: 15px; background: var(--flu-green);
+            color: #000; font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px;
+        }
+        .prod-img { width: 60px; object-fit: contain; }
+        .prod-title { font-weight: 700; font-size: 15px; margin: 0 0 4px 0; }
+        .prod-price { font-weight: 800; font-size: 16px; color: var(--flu-dark); margin: 0; }
+        .btn-card { background: var(--flu-orange); color: white; border: none; padding: 10px 15px; border-radius: 20px; font-size: 12px; font-weight: 700; width: 100%; margin-top: 10px; cursor: pointer; }
+
+        /* MODAL DE PEDIDO */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: flex-end; }
+        .modal-content { background: white; width: 100%; border-top-left-radius: 25px; border-top-right-radius: 25px; padding: 25px; animation: slideUp 0.3s ease-out; max-height: 90vh; overflow-y: auto; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .form-input { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 12px; font-size: 14px; background: #f8fafc; }
+        .form-label { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block; text-transform: uppercase; }
+        .header-modal { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+        /* ALERTA DE HORARIO */
+        .alert-horario {
+            background: #eef2f7; color: var(--flu-dark); padding: 12px; border-radius: 10px; 
+            font-size: 13px; font-weight: 700; margin-bottom: 15px; border-left: 4px solid var(--flu-dark);
+            display: flex; align-items: center; gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero">
+        <div class="header-logo">EL BOTELLÓN</div>
+        <img src="https://i.ibb.co/nsVHbwp7/Botellon-PET-20-Litros.png" class="hero-img" alt="El Botellón PET 20 Litros">
+        <h1>Hidratación Premium.</h1>
+        <p>Agua purificada de alta calidad directo a tu hogar en Ubaté.</p>
+    </div>
+
+    <div class="services-container">
+        <h2 class="section-title">Pedir Ahora</h2>
+        <div class="product-card">
+            <div class="badge-green">ENTREGA RÁPIDA</div>
+            <img src="https://i.ibb.co/nsVHbwp7/Botellon-PET-20-Litros.png" class="prod-img" alt="Recarga El Botellón">
+            <div style="flex: 1;">
+                <h3 class="prod-title">Recarga 20L</h3>
+                <p class="prod-price">$ 16.000</p>
+                <button class="btn-card" onclick="openModal()">COMPLETAR DATOS</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="order-modal">
+        <div class="modal-content" id="form-container">
+            <div class="header-modal">
+                <h3 style="margin:0; color:var(--flu-dark);">Datos de Entrega</h3>
+                <span style="font-size:24px; cursor:pointer;" onclick="closeModal()">✕</span>
+            </div>
+            
+            <div class="alert-horario" id="box-horario">
+                <span>⏱️</span> <span id="txt-horario">Calculando disponibilidad...</span>
+            </div>
+            
+            <label class="form-label">Nombre Completo</label>
+            <input type="text" id="c_nombre" class="form-input" placeholder="Ej: Jorge Hernando">
+
+            <label class="form-label">WhatsApp</label>
+            <input type="tel" id="c_whatsapp" class="form-input" placeholder="Ej: 3041234567">
+
+            <label class="form-label">Cantidad de Botellones</label>
+            <input type="number" id="c_cant" class="form-input" value="1" min="1">
+
+            <label class="form-label">Barrio</label>
+            <input type="text" id="c_barrio" class="form-input" placeholder="Ej: Cucaranga">
+
+            <label class="form-label">Dirección Exacta</label>
+            <input type="text" id="c_dir" class="form-input" placeholder="Ej: Calle 1 8 11">
+
+            <button class="btn-main" style="width: 100%; margin-top: 10px; font-size: 16px;" onclick="enviarPedido()">CONFIRMAR PEDIDO</button>
+        </div>
+
+        <div class="modal-content" id="success-container" style="display: none; text-align: center;">
+            <div style="font-size: 50px; margin-bottom: 10px;">✅</div>
+            <h3 style="color: var(--flu-dark); margin-bottom: 5px;">¡Pedido Recibido!</h3>
+            <p style="color: var(--text-muted); font-size: 14px;" id="msg-exito">Tu recarga está confirmada.</p>
+            <button class="btn-main" style="width: 100%; margin-top: 20px;" onclick="closeModal()">VOLVER AL INICIO</button>
+        </div>
+    </div>
+
+    <script>
+        // ESTA ES TU URL OFICIAL ACTUALIZADA
+        const API_URL = "https://script.google.com/macros/s/AKfycbzRlA-7XPyA1_OHcN8Ljl0bXw5RMF_qdxv9f95e6qI5gXSiKA7_M7WW0eBSHp6QWzbA/exec";
+        let entregaProgramada = "";
+
+        const festivos2026 = [
+            "2026-01-01", "2026-01-12", "2026-03-23", "2026-04-02", "2026-04-03",
+            "2026-05-01", "2026-05-18", "2026-06-08", "2026-06-15", "2026-06-29",
+            "2026-07-20", "2026-08-07", "2026-08-17", "2026-10-12", "2026-11-02",
+            "2026-11-16", "2026-12-08", "2026-12-25"
+        ];
+
+        function formatearFecha(fecha) {
+            return fecha.getFullYear() + "-" + 
+                   String(fecha.getMonth() + 1).padStart(2, '0') + "-" + 
+                   String(fecha.getDate()).padStart(2, '0');
+        }
+
+        function esFestivo(fecha) {
+            return festivos2026.includes(formatearFecha(fecha));
+        }
+
+        function calcularHorarioEntrega() {
+            const ahora = new Date();
+            const dia = ahora.getDay();
+            const hora = ahora.getHours();
+            let seEntregaHoy = false;
+
+            if (!esFestivo(ahora) && dia !== 0) {
+                if (dia >= 1 && dia <= 5 && hora >= 8 && hora < 17) {
+                    seEntregaHoy = true;
+                } else if (dia === 6 && hora >= 8 && hora < 12) {
+                    seEntregaHoy = true;
+                }
+            }
+
+            if (seEntregaHoy) {
+                entregaProgramada = "Hoy en transcurso del día";
+                document.getElementById('txt-horario').innerHTML = "<b>Despacho Inmediato:</b> Llega Hoy";
+                document.getElementById('box-horario').style.background = "#dcfce7";
+                document.getElementById('box-horario').style.color = "#166534";
+            } else {
+                let proximoDia = new Date(ahora);
+                proximoDia.setDate(proximoDia.getDate() + 1);
+                
+                while (proximoDia.getDay() === 0 || esFestivo(proximoDia)) {
+                    proximoDia.setDate(proximoDia.getDate() + 1);
+                }
+                
+                const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+                const diaAsignado = diasSemana[proximoDia.getDay()];
+                
+                entregaProgramada = `Programado para el ${diaAsignado}`;
+                document.getElementById('txt-horario').innerHTML = `<b>Fuera de Horario:</b> Se entregará el próximo <b>${diaAsignado}</b> en la mañana.`;
+                document.getElementById('box-horario').style.background = "#fff3cd";
+                document.getElementById('box-horario').style.color = "#856404";
+            }
+        }
+
+        function openModal() {
+            calcularHorarioEntrega(); 
+            document.getElementById('form-container').style.display = 'block';
+            document.getElementById('success-container').style.display = 'none';
+            document.getElementById('order-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('order-modal').style.display = 'none';
+            document.getElementById('c_nombre').value = '';
+            document.getElementById('c_whatsapp').value = '';
+            document.getElementById('c_cant').value = '1';
+            document.getElementById('c_barrio').value = '';
+            document.getElementById('c_dir').value = '';
+        }
+
+        async function enviarPedido() {
+            const nombre = document.getElementById('c_nombre').value.trim();
+            const whatsapp = document.getElementById('c_whatsapp').value.trim();
+            const cantidad = document.getElementById('c_cant').value;
+            const barrio = document.getElementById('c_barrio').value.trim();
+            const direccion = document.getElementById('c_dir').value.trim();
+
+            if(!nombre || !whatsapp || !barrio || !direccion) {
+                alert("Socio, llena todos los campos para procesar el pedido.");
+                return;
+            }
+
+            const payload = {
+                action: "nuevo_pedido",
+                nombre: nombre,
+                whatsapp: whatsapp,
+                cantidad: cantidad,
+                barrio: barrio,
+                direccion: direccion,
+                asignacion: entregaProgramada 
+            };
+
+            try {
+                fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(payload)
+                });
+            } catch (error) { console.log("Enviado"); }
+
+            document.getElementById('msg-exito').innerText = `Tu recarga de agua quedó registrada y la marcamos como: ${entregaProgramada}.`;
+            
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('success-container').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
