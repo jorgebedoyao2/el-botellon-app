@@ -13,6 +13,21 @@
         * { box-sizing: border-box; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background-color: var(--bg-light); color: var(--text-main); padding-bottom: 30px; }
 
+        /* PANTALLA DE LOGIN */
+        #login-screen {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            height: 100vh; padding: 20px; text-align: center; background: white;
+        }
+        .login-box {
+            background: var(--bg-light); padding: 30px; border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px;
+        }
+        .pin-input {
+            width: 100%; padding: 15px; border: 2px solid #e2e8f0; border-radius: 12px; 
+            font-size: 24px; text-align: center; letter-spacing: 5px; font-weight: 800; 
+            margin: 20px 0; background: white;
+        }
+
         /* HEADER REPARTIDOR */
         .header-admin {
             background: var(--flu-dark); color: white; padding: 20px;
@@ -43,6 +58,8 @@
             padding: 15px; border-radius: 12px; font-weight: 700; font-size: 15px;
             margin-top: 15px; cursor: pointer; text-transform: uppercase;
         }
+        .btn-orange { background: var(--flu-orange); }
+        
         .btn-whatsapp {
             background: #25D366; color: white; border: none; padding: 10px;
             border-radius: 10px; font-weight: 700; font-size: 12px; width: 100%;
@@ -50,27 +67,72 @@
         }
 
         .loading { text-align: center; padding: 40px; color: var(--text-muted); font-weight: 600; }
+        .logout { color: #ff4d4d; font-size: 12px; text-decoration: underline; text-align: center; display: block; margin-top: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="header-admin">
-        <h1>Centro de Mando</h1>
-        <div class="badge-count" id="contador">0</div>
+    <div id="login-screen">
+        <div class="login-box">
+            <h2 style="color: var(--flu-dark); margin-top: 0;">Área Restringida</h2>
+            <p style="color: var(--text-muted); font-size: 14px;">Ingresa el PIN de administrador para ver las rutas de Ubaté.</p>
+            <input type="password" id="pin-input" class="pin-input" placeholder="••••">
+            <p id="error-msg" style="color: red; font-size: 12px; display: none; font-weight: 700;">PIN Incorrecto. Intenta de nuevo.</p>
+            <button class="btn-entregar btn-orange" onclick="verificarPIN()">DESBLOQUEAR PANEL</button>
+        </div>
     </div>
 
-    <div class="container" id="lista-pedidos">
-        <div class="loading" id="cargando">🔄 Sincronizando con la base de datos...</div>
+    <div id="dashboard-screen" style="display: none;">
+        <div class="header-admin">
+            <h1>Centro de Mando</h1>
+            <div class="badge-count" id="contador">0</div>
+        </div>
+
+        <div class="container" id="lista-pedidos">
+            <div class="loading" id="cargando">🔄 Sincronizando con la base de datos...</div>
+        </div>
+        
+        <span class="logout" onclick="cerrarSesion()">Cerrar Sesión</span>
     </div>
 
     <script>
-        // Usamos tu URL oficial SE DEBE CAMBIAR CADA VEZ QUE SE CAMBIA LA URL DE GOOGLE SHETT 
+        // --- CONFIGURACIÓN DE SEGURIDAD ---
+        const PIN_SECRETO = "2026"; // <--- CAMBIA ESTE NÚMERO POR EL PIN QUE TÚ QUIERAS
+        
+        // TU URL OFICIAL DE GOOGLE SHEETS
         const API_URL = "https://script.google.com/macros/s/AKfycbxGmdjA-_-gN0npGjNBp3URPHvOmV7f5P69bPODIehVtrOvSIxFgOQfXTZQbZZy0cC-/exec";
         
-        // 1. Cargar Pedidos al abrir la app
+        // 1. SISTEMA DE LOGIN
+        function checkAuth() {
+            if(localStorage.getItem('auth_botellon') === 'true') {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('dashboard-screen').style.display = 'block';
+                cargarPedidos();
+            }
+        }
+
+        function verificarPIN() {
+            const input = document.getElementById('pin-input').value;
+            if(input === PIN_SECRETO) {
+                localStorage.setItem('auth_botellon', 'true');
+                document.getElementById('error-msg').style.display = 'none';
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('dashboard-screen').style.display = 'block';
+                cargarPedidos();
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+                document.getElementById('pin-input').value = '';
+            }
+        }
+
+        function cerrarSesion() {
+            localStorage.removeItem('auth_botellon');
+            location.reload(); // Recarga la página para mostrar el login
+        }
+
+        // 2. CARGAR PEDIDOS DESDE GOOGLE SHEETS
         async function cargarPedidos() {
             try {
-                // Al hacer fetch a la URL, se ejecuta el "doGet" de Apps Script
                 const response = await fetch(API_URL);
                 const pedidos = await response.json();
                 
@@ -85,7 +147,6 @@
                     return;
                 }
 
-                // Generar las tarjetas
                 pedidos.forEach(p => {
                     const card = document.createElement('div');
                     card.className = 'card-pedido';
@@ -93,19 +154,19 @@
                     card.innerHTML = `
                         <div class="card-header">
                             <h3 class="cliente-nombre">${p.nombre}</h3>
-                            <div class="cantidad-badge">💧 ${p.cantidad} Botellón(es)</div>
+                            <div class="cantidad-badge">💧 ${p.cantidad} Ud.</div>
                         </div>
                         <div class="info-fila">📍 <strong>Dirección:</strong> ${p.direccion} (${p.barrio})</div>
-                        <div class="info-fila">⏱️ <strong>Programado:</strong> ${p.asignacion}</div>
+                        <div class="info-fila">⏱️ <strong>Asignado:</strong> ${p.asignacion}</div>
                         
                         <div style="display:flex; gap:10px; margin-top:15px;">
                             <button class="btn-whatsapp" onclick="abrirWhatsApp('${p.whatsapp}', '${p.nombre}')">
-                                💬 Contactar
+                                💬 WhatsApp
                             </button>
                         </div>
                         
                         <button class="btn-entregar" onclick="marcarEntregado(${p.fila})">
-                            ✅ Marcar como Entregado
+                            ✅ Marcar Entregado
                         </button>
                     `;
                     lista.appendChild(card);
@@ -116,37 +177,23 @@
             }
         }
 
-        // 2. Marcar como Entregado
         function marcarEntregado(fila) {
-            // Desaparecemos la tarjeta inmediatamente para dar sensación de velocidad (Optimistic UI)
             document.getElementById(`tarjeta-${fila}`).style.display = 'none';
-            
-            // Actualizamos el contador
             let count = parseInt(document.getElementById('contador').innerText);
             document.getElementById('contador').innerText = count - 1;
 
-            const payload = {
-                action: "marcar_entregado",
-                fila: fila
-            };
-
-            // Enviamos la instrucción silenciosa a Google Sheets
-            fetch(API_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(payload)
-            });
+            const payload = { action: "marcar_entregado", fila: fila };
+            fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
         }
 
-        // 3. Botón rápido de WhatsApp por si el repartidor no encuentra la casa
         function abrirWhatsApp(numero, nombre) {
             const numLimpio = numero.replace(/\D/g,'');
             const msg = `Hola ${nombre}, somos de El Botellón. Estamos en camino con tu pedido 💧`;
             window.open(`https://wa.me/57${numLimpio}?text=${encodeURIComponent(msg)}`);
         }
 
-        // Iniciar
-        cargarPedidos();
+        // Arrancar validación al cargar la página
+        checkAuth();
     </script>
 </body>
 </html>
