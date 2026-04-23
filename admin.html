@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --flu-blue: #0066ff; --flu-dark: #1a202c; --flu-orange: #ff7b00;
+            --flu-green: #16a34a; --bg-light: #f4f7fa; --text-main: #1a202c; --text-muted: #718096;
+        }
+
+        * { box-sizing: border-box; font-family: 'Montserrat', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background-color: var(--bg-light); color: var(--text-main); padding-bottom: 30px; }
+
+        /* HEADER REPARTIDOR */
+        .header-admin {
+            background: var(--flu-dark); color: white; padding: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .header-admin h1 { margin: 0; font-size: 18px; font-weight: 800; }
+        .badge-count { background: var(--flu-orange); color: white; padding: 5px 12px; border-radius: 20px; font-weight: 800; font-size: 14px; }
+
+        .container { padding: 20px; }
+
+        /* TARJETAS DE PEDIDOS */
+        .card-pedido {
+            background: white; border-radius: 16px; padding: 20px; margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid var(--flu-orange);
+            transition: opacity 0.3s ease;
+        }
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .cliente-nombre { font-size: 16px; font-weight: 800; margin: 0; }
+        .cantidad-badge { background: #eef2f7; color: var(--flu-dark); padding: 5px 10px; border-radius: 8px; font-weight: 800; font-size: 14px; }
+        
+        .info-fila { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; margin-bottom: 8px; color: var(--text-muted); }
+        .info-fila strong { color: var(--text-main); }
+
+        /* BOTONES DE ACCIÓN */
+        .btn-entregar {
+            background: var(--flu-green); color: white; border: none; width: 100%;
+            padding: 15px; border-radius: 12px; font-weight: 700; font-size: 15px;
+            margin-top: 15px; cursor: pointer; text-transform: uppercase;
+        }
+        .btn-whatsapp {
+            background: #25D366; color: white; border: none; padding: 10px;
+            border-radius: 10px; font-weight: 700; font-size: 12px; width: 100%;
+            cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 5px;
+        }
+
+        .loading { text-align: center; padding: 40px; color: var(--text-muted); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="header-admin">
+        <h1>Centro de Mando</h1>
+        <div class="badge-count" id="contador">0</div>
+    </div>
+
+    <div class="container" id="lista-pedidos">
+        <div class="loading" id="cargando">🔄 Sincronizando con la base de datos...</div>
+    </div>
+
+    <script>
+        // Usamos tu URL oficial
+        const API_URL = "https://script.google.com/macros/s/AKfycbzRlA-7XPyA1_OHcN8Ljl0bXw5RMF_qdxv9f95e6qI5gXSiKA7_M7WW0eBSHp6QWzbA/exec";
+        
+        // 1. Cargar Pedidos al abrir la app
+        async function cargarPedidos() {
+            try {
+                // Al hacer fetch a la URL, se ejecuta el "doGet" de Apps Script
+                const response = await fetch(API_URL);
+                const pedidos = await response.json();
+                
+                document.getElementById('cargando').style.display = 'none';
+                document.getElementById('contador').innerText = pedidos.length;
+
+                const lista = document.getElementById('lista-pedidos');
+                lista.innerHTML = '';
+
+                if (pedidos.length === 0) {
+                    lista.innerHTML = '<div class="loading">✅ ¡Todo al día! No hay pedidos pendientes.</div>';
+                    return;
+                }
+
+                // Generar las tarjetas
+                pedidos.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'card-pedido';
+                    card.id = `tarjeta-${p.fila}`;
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <h3 class="cliente-nombre">${p.nombre}</h3>
+                            <div class="cantidad-badge">💧 ${p.cantidad} Botellón(es)</div>
+                        </div>
+                        <div class="info-fila">📍 <strong>Dirección:</strong> ${p.direccion} (${p.barrio})</div>
+                        <div class="info-fila">⏱️ <strong>Programado:</strong> ${p.asignacion}</div>
+                        
+                        <div style="display:flex; gap:10px; margin-top:15px;">
+                            <button class="btn-whatsapp" onclick="abrirWhatsApp('${p.whatsapp}', '${p.nombre}')">
+                                💬 Contactar
+                            </button>
+                        </div>
+                        
+                        <button class="btn-entregar" onclick="marcarEntregado(${p.fila})">
+                            ✅ Marcar como Entregado
+                        </button>
+                    `;
+                    lista.appendChild(card);
+                });
+
+            } catch (error) {
+                document.getElementById('cargando').innerText = "⚠️ Error al conectar con Google Sheets.";
+            }
+        }
+
+        // 2. Marcar como Entregado
+        function marcarEntregado(fila) {
+            // Desaparecemos la tarjeta inmediatamente para dar sensación de velocidad (Optimistic UI)
+            document.getElementById(`tarjeta-${fila}`).style.display = 'none';
+            
+            // Actualizamos el contador
+            let count = parseInt(document.getElementById('contador').innerText);
+            document.getElementById('contador').innerText = count - 1;
+
+            const payload = {
+                action: "marcar_entregado",
+                fila: fila
+            };
+
+            // Enviamos la instrucción silenciosa a Google Sheets
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(payload)
+            });
+        }
+
+        // 3. Botón rápido de WhatsApp por si el repartidor no encuentra la casa
+        function abrirWhatsApp(numero, nombre) {
+            const numLimpio = numero.replace(/\D/g,'');
+            const msg = `Hola ${nombre}, somos de El Botellón. Estamos en camino con tu pedido 💧`;
+            window.open(`https://wa.me/57${numLimpio}?text=${encodeURIComponent(msg)}`);
+        }
+
+        // Iniciar
+        cargarPedidos();
+    </script>
+</body>
+</html>
