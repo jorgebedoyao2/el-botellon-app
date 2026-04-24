@@ -1,0 +1,21 @@
+{
+  "name": "El Botellón - Ubaté",
+  "short_name": "El Botellón",
+  "description": "Recarga de agua purificada a domicilio en Ubaté.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#f4f7fa",
+  "theme_color": "#003db3",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/nsVHbwp7/Botellon-PET-20-Litros.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.ibb.co/nsVHbwp7/Botellon-PET-20-Litros.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
